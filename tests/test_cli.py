@@ -19,7 +19,9 @@ def test_cli_do_marc21_from_xml():
     from dojson import cli
     from test_core import RECORD_SIMPLE, RECORD_999_FIELD
 
-    expected = [{'main_entry_personal_name': {'personal_name': 'Donges, Jonathan F'}}]
+    expected = [{
+        'main_entry_personal_name': {'personal_name': 'Donges, Jonathan F'}
+    }]
     runner = CliRunner()
 
     with runner.isolated_filesystem():
@@ -71,7 +73,9 @@ def test_cli_do_marc21_from_json():
     from dojson.contrib.marc21.utils import create_record
     from test_core import RECORD_SIMPLE
 
-    expected = {'main_entry_personal_name': {'personal_name': 'Donges, Jonathan F'}}
+    expected = {
+        'main_entry_personal_name': {'personal_name': 'Donges, Jonathan F'}
+    }
     runner = CliRunner()
 
     with runner.isolated_filesystem():
@@ -92,3 +96,25 @@ def test_cli_do_marc21_from_json():
         )
         data = json.loads(result.output)
         assert expected == data
+
+
+def test_cli_do_marcxml_from_json_with_xslt():
+    """Test MARC21 loading from XML."""
+    from dojson import cli
+    from test_core import RECORD_SIMPLE
+    from test_contrib_to_marc21_utils import RECORD_XSLT, RECORD_EXPECTED
+
+    runner = CliRunner()
+
+    with runner.isolated_filesystem():
+        with open('record.xml', 'wb') as f:
+            f.write(RECORD_SIMPLE.encode('utf-8'))
+        with open('record.xsl', 'wb') as f:
+            f.write(RECORD_XSLT.encode('utf-8'))
+
+        result = runner.invoke(
+            cli.apply_rule_marcxml,
+            ['-i', 'record.xml', '-l', 'marcxml',
+             '-f', 'record.xsl']
+        )
+        assert "{}\n".format(RECORD_EXPECTED) == result.output

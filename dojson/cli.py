@@ -19,7 +19,8 @@ console one can run:
 
 **Extensions**
 
-New extensions with loaders, dumpers, or rules can be provided via entry points.
+New extensions with loaders, dumpers, or rules can be provided via entry
+points.
 
 - ``dojson.cli.load`` functions expecting a stream and returning Python dict or
   iterator;
@@ -71,6 +72,32 @@ def apply_rule(source, load, dump, rule, strict):
         click.echo(dump([
             rule.do(item, ignore_missing=not strict) for item in data
         ]))
+
+
+@cli.command("do_marcxml")
+@click.option('-i', '--input', 'source', type=click.File('rb'),
+              default=sys.stdin)
+@click.option('-l', '--load', callback=open_entry_point('dojson.cli.load'),
+              default='json')
+@click.option('--strict', is_flag=True, default=False,
+              help='Raise when there is not matching rule for a key.')
+@click.option('-f', '--filename', default=None)
+def apply_rule_marcxml(source, load, filename, strict):
+    """Create marcxml from input using xslt."""
+    data = load(source)
+
+    dump = list(pkg_resources.iter_entry_points(
+        'dojson.cli.dump', 'marcxml'
+    ))[0].load()
+
+    if isinstance(data, dict):
+        click.echo(dump(
+            data,
+            xslt_filename=filename))
+    else:
+        click.echo(dump([
+            item for item in data
+        ], xslt_filename=filename))
 
 
 @cli.command(name='missing')
