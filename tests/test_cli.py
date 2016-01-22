@@ -97,13 +97,46 @@ def test_cli_do_marc21_from_json():
         data = json.loads(result.output)
         assert expected == data
 
+        # FIXME
+        result = runner.invoke(
+            cli.apply_rule,
+            ['-i', 'record.json', '-d', 'marcxml', 'marc21']
+        )
+        data = result  # json.loads(result.output)
+        assert expected == data
 
-def test_cli_do_marcxml_from_json_with_xslt():
+
+#  def test_cli_do_marcxml_from_json_with_xslt():
+#      """Test MARC21 loading from XML."""
+#      from dojson import cli
+#      from dojson.contrib.marc21.utils import create_record
+#      from test_core import RECORD_SIMPLE
+#      from test_contrib_to_marc21_utils import RECORD_XSLT, RECORD_EXPECTED
+
+#      runner = CliRunner()
+
+#      with runner.isolated_filesystem():
+#          with open('record.json', 'wb') as fp:
+#              record = create_record(RECORD_SIMPLE)
+#              fp.write(json.dumps(record).encode('utf-8'))
+#          with open('record.xsl', 'wb') as f:
+#              f.write(RECORD_XSLT.encode('utf-8'))
+
+#          result = runner.invoke(
+#              cli.apply_rule_marcxml,
+#              ['-i', 'record.json',
+#               '-f', 'record.xsl']
+#          )
+#          assert "{}\n".format(RECORD_EXPECTED) == result.output
+
+
+def test_cli_do_marcxml_from_xml_with_xslt():
     """Test MARC21 loading from XML."""
     from dojson import cli
     from test_core import RECORD_SIMPLE
     from test_contrib_to_marc21_utils import RECORD_XSLT, RECORD_EXPECTED
 
+    #  import pudb; pudb.set_trace()  # XXX BREAKPOINT
     runner = CliRunner()
 
     with runner.isolated_filesystem():
