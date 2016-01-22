@@ -52,7 +52,9 @@ def open_entry_point(group_name):
     return loader
 
 
-@cli.command(name='do')
+@cli.command(name='do', context_settings=dict(
+    ignore_unknown_options=True, allow_extra_args=True,
+))
 @click.option('-i', '--input', 'source', type=click.File('rb'),
               default=sys.stdin)
 @click.option('-l', '--load', callback=open_entry_point('dojson.cli.load'),
@@ -62,9 +64,16 @@ def open_entry_point(group_name):
 @click.argument('rule', callback=open_entry_point('dojson.cli.rule'))
 @click.option('--strict', is_flag=True, default=False,
               help='Raise when there is not matching rule for a key.')
-def apply_rule(source, load, dump, rule, strict):
+@click.pass_context
+def apply_rule(ctx, source, load, dump, rule, strict):
     """Create JSON using given rule."""
+    import pudb; pudb.set_trace()  # XXX BREAKPOINT
+
     data = load(source)
+    if ctx.args:
+        for argx in self.args:
+            if args.startswith('--xslt'):
+                kwargs['xslt_filename'] = ...
 
     if isinstance(data, dict):
         click.echo(dump(rule.do(data, ignore_missing=not strict)))
@@ -72,32 +81,6 @@ def apply_rule(source, load, dump, rule, strict):
         click.echo(dump([
             rule.do(item, ignore_missing=not strict) for item in data
         ]))
-
-
-@cli.command("do_marcxml")
-@click.option('-i', '--input', 'source', type=click.File('rb'),
-              default=sys.stdin)
-@click.option('-l', '--load', callback=open_entry_point('dojson.cli.load'),
-              default='json')
-@click.option('--strict', is_flag=True, default=False,
-              help='Raise when there is not matching rule for a key.')
-@click.option('-f', '--filename', default=None)
-def apply_rule_marcxml(source, load, filename, strict):
-    """Create marcxml from input using xslt."""
-    data = load(source)
-
-    dump = list(pkg_resources.iter_entry_points(
-        'dojson.cli.dump', 'marcxml'
-    ))[0].load()
-
-    if isinstance(data, dict):
-        click.echo(dump(
-            data,
-            xslt_filename=filename))
-    else:
-        click.echo(dump([
-            item for item in data
-        ], xslt_filename=filename))
 
 
 @cli.command(name='missing')

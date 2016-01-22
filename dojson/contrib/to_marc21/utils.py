@@ -14,6 +14,8 @@ from lxml import etree
 from lxml.builder import E
 from six import string_types
 
+from dojson.contrib.marc21.utils import GroupableOrderedDict
+
 MARC21_DTD = pkg_resources.resource_filename(
     'dojson.contrib.marc21', 'MARC21slim.dtd')
 """Location of the MARC21 DTD file"""
@@ -29,6 +31,8 @@ def _dumps_etree(records, xslt_filename=None):
     records = records if isinstance(records, list) else [records]
 
     for record in records:
+        if not isinstance(record, GroupableOrderedDict):
+            record = GroupableOrderedDict(record)
         rec = E.record()
         for df, subfields in record.items(with_order=False, repeated=True):
             # Control fields
@@ -53,8 +57,13 @@ def _dumps_etree(records, xslt_filename=None):
                     datafield.attrib['ind1'] = df[3]
                     datafield.attrib['ind2'] = df[4]
 
+                    if not isinstance(subfield, GroupableOrderedDict):
+                        subfield = GroupableOrderedDict(subfield)
+
                     for code, value in subfield.items(with_order=False,
                                                       repeated=True):
+                        if code == '__order__':
+                            continue
                         if not isinstance(value, string_types):
                             for v in value:
                                 datafield.append(E.subfield(v, code=code))

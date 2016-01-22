@@ -102,7 +102,7 @@ def test_cli_do_marc21_from_json():
             cli.apply_rule,
             ['-i', 'record.json', '-d', 'marcxml', 'marc21']
         )
-        data = result  # json.loads(result.output)
+        data = json.loads(result.output)
         assert expected == data
 
 
